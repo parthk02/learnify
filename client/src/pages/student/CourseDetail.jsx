@@ -63,9 +63,7 @@ const CourseDetail = () => {
           </div>
           <p>
             Students enrolled:{" "}
-            {Array.isArray(course?.enrolledStudents)
-              ? course.enrolledStudents.length
-              : 0}
+            {typeof data.enrolledCount === "number" ? data.enrolledCount : 0}
           </p>
         </div>
       </div>
@@ -83,11 +81,35 @@ const CourseDetail = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {course.lectures.map((lecture, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-sm">
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 text-sm cursor-pointer group"
+                  onClick={() => {
+                    // Allow admin/instructor to preview any lecture
+                    if (userRole === "instructor") {
+                      window.open(lecture.videoUrl, "_blank");
+                    }
+                  }}
+                >
                   <span>
-                    {true ? <PlayCircle size={14} /> : <Lock size={14} />}
+                    {userRole === "instructor" ? (
+                      <PlayCircle
+                        size={14}
+                        className="text-blue-600 group-hover:text-green-600"
+                      />
+                    ) : (
+                      <PlayCircle size={14} />
+                    )}
                   </span>
-                  <p>{lecture.lectureTitle}</p>
+                  <p
+                    className={
+                      userRole === "instructor"
+                        ? "underline group-hover:text-green-600"
+                        : ""
+                    }
+                  >
+                    {lecture.lectureTitle}
+                  </p>
                 </div>
               ))}
             </CardContent>
@@ -104,7 +126,7 @@ const CourseDetail = () => {
                   controls={true}
                 />
               </div>
-              <h1>Lecture title</h1>
+              <h1>{course.lectures[0]?.lectureTitle || "Lecture title"}</h1>
               <Separator className="my-2" />
               <h1 className="text-lg md:text-xl font-semibold">
                 Course Price: ₹{course.coursePrice || 0}

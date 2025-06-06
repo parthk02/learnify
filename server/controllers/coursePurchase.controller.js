@@ -160,9 +160,11 @@ export const getCourseDetailWithPurchaseStatus = async (req, res) => {
       return res.status(404).json({ message: "course not found!" });
     }
 
+    const enrolledCount = await CoursePurchase.countDocuments({ courseId, status: "completed" });
     return res.status(200).json({
       course,
       purchased: !!purchased, // true if purchased, false otherwise
+      enrolledCount
     });
   } catch (error) {
     console.log(error);

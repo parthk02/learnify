@@ -49,18 +49,25 @@ const CourseTab = () => {
     const [publishCourse, {}] = usePublishCourseMutation();
     const [removeCourse, { isLoading: isRemoveLoading, isSuccess: isRemoveSuccess, error: removeError }] = useRemoveCourseMutation();
  
+  // Utility to sanitize course object fields
+  const sanitizeCourseFields = (course) => ({
+    courseTitle: typeof course.courseTitle === "string" ? course.courseTitle : "",
+    subTitle: typeof course.subTitle === "string" ? course.subTitle : "",
+    description: typeof course.description === "string" ? course.description : "",
+    category: typeof course.category === "string" ? course.category : "",
+    courseLevel: typeof course.courseLevel === "string" ? course.courseLevel : "",
+    coursePrice: course.coursePrice !== undefined && course.coursePrice !== null ? String(course.coursePrice) : "",
+    courseThumbnail: "", // file input is always empty
+  });
+
   useEffect(() => {
-    if (courseByIdData?.course) { 
-        const course = courseByIdData?.course;
-      setInput({
-        courseTitle: course.courseTitle,
-        subTitle: course.subTitle,
-        description: course.description,
-        category: course.category,
-        courseLevel: course.courseLevel,
-        coursePrice: course.coursePrice,
-        courseThumbnail: "",
-      });
+    if (courseByIdData?.course) {
+      const course = courseByIdData.course;
+      setInput(sanitizeCourseFields(course));
+      // Show previous thumbnail if available
+      if (course.courseThumbnail) {
+        setPreviewThumbnail(course.courseThumbnail);
+      }
     }
   }, [courseByIdData]);
 
@@ -186,7 +193,7 @@ const CourseTab = () => {
             <div>
               <Label>Category</Label>
               <Select
-                defaultValue={input.category}
+                value={input.category}
                 onValueChange={selectCategory}
               >
                 <SelectTrigger className="w-[180px]">
@@ -218,7 +225,7 @@ const CourseTab = () => {
             <div>
               <Label>Course Level</Label>
               <Select
-                defaultValue={input.courseLevel}
+                value={input.courseLevel}
                 onValueChange={selectCourseLevel}
               >
                 <SelectTrigger className="w-[180px]">
@@ -257,7 +264,7 @@ const CourseTab = () => {
             {previewThumbnail && (
               <img
                 src={previewThumbnail}
-                className="e-64 my-2"
+                className="h-64 my-2"
                 alt="Course Thumbnail"
               />
             )}
