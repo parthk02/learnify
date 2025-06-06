@@ -17,7 +17,7 @@ import {
 } from "@/features/api/authApi";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -25,6 +25,8 @@ const Login = () => {
     name: "",
     email: "",
     password: "",
+    role: "student", // default role
+    instructorKey: "", // only used if role is instructor
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
 
@@ -47,6 +49,14 @@ const Login = () => {
     },
   ] = useLoginUserMutation();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Set tab based on query param
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get("tab") === "signup" ? "signup" : "login";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab());
 
   const changeInputHandler = (e, type) => {
     const { name, value } = e.target;
@@ -58,9 +68,17 @@ const Login = () => {
   };
 
   const handleRegistration = async (type) => {
-    const inputData = type === "signup" ? signupInput : loginInput;
-    const action = type === "signup" ? registerUser : loginUser;
-    await action(inputData);
+    if (type === "signup") {
+      const inputData = { ...signupInput };
+      if (inputData.role !== "instructor") {
+        delete inputData.instructorKey;
+      }
+      await registerUser(inputData);
+    } else {
+      // Only send email and password for login
+      const { email, password } = loginInput;
+      await loginUser({ email, password });
+    }
   };
 
   useEffect(() => {
@@ -86,9 +104,14 @@ const Login = () => {
     registerError,
   ]);
 
+  useEffect(() => {
+    setActiveTab(getInitialTab());
+    // eslint-disable-next-line
+  }, [location.search]);
+
   return (
     <div className="flex items-center w-full justify-center mt-20">
-      <Tabs defaultValue="login" className="w-[400px]">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-[400px]">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="signup">Signup</TabsTrigger>
           <TabsTrigger value="login">Login</TabsTrigger>
@@ -135,6 +158,37 @@ const Login = () => {
                   required="true"
                 />
               </div>
+              <div className="space-y-1">
+                <Label htmlFor="role">Register as</Label>
+                <div className="relative">
+                  <select
+                    name="role"
+                    value={signupInput.role}
+                    onChange={(e) => changeInputHandler(e, "signup")}
+                    className="w-full appearance-none bg-background text-foreground border border-input rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    required
+                  >
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    ▼
+                  </span>
+                </div>
+              </div>
+              {signupInput.role === "instructor" && (
+                <div className="space-y-1">
+                  <Label htmlFor="instructorKey">Instructor Key</Label>
+                  <Input
+                    type="password"
+                    name="instructorKey"
+                    value={signupInput.instructorKey}
+                    onChange={(e) => changeInputHandler(e, "signup")}
+                    placeholder="Enter instructor key"
+                    required
+                  />
+                </div>
+              )}
             </CardContent>
             <CardFooter>
               <Button
@@ -170,7 +224,8 @@ const Login = () => {
                   value={loginInput.email}
                   onChange={(e) => changeInputHandler(e, "login")}
                   placeholder="Eg. patel@gmail.com"
-                  required="true"
+                  autoComplete="username"
+                  required
                 />
               </div>
               <div className="space-y-1">
@@ -181,7 +236,8 @@ const Login = () => {
                   value={loginInput.password}
                   onChange={(e) => changeInputHandler(e, "login")}
                   placeholder="Eg. xyz"
-                  required="true"
+                  autoComplete="current-password"
+                  required
                 />
               </div>
             </CardContent>

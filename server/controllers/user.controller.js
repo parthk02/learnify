@@ -6,12 +6,21 @@ import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
 export const register = async (req,res) => {
     try {
        
-        const {name, email, password} = req.body; // patel214
+        const {name, email, password, role, instructorKey} = req.body; // add instructorKey
         if(!name || !email || !password){
             return res.status(400).json({
                 success:false,
                 message:"All fields are required."
             })
+        }
+        if(role === "instructor") {
+            // Check instructor key (use env variable)
+            if(!instructorKey || instructorKey !== process.env.INSTRUCTOR_KEY) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Invalid instructor key. Registration denied."
+                });
+            }
         }
         const user = await User.findOne({email});
         if(user){
@@ -24,7 +33,8 @@ export const register = async (req,res) => {
         await User.create({
             name,
             email,
-            password:hashedPassword
+            password:hashedPassword,
+            role: role === "instructor" ? "instructor" : "student" // only allow valid roles
         });
         return res.status(201).json({
             success:true,
