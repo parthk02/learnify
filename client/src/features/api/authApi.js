@@ -6,7 +6,7 @@ export const authApi = createApi({
     reducerPath:"authApi",
     baseQuery:fetchBaseQuery({
         baseUrl: API_ENDPOINTS.USER,
-        credentials:'include',
+        credentials: 'include',
         prepareHeaders: (headers) => {
             headers.set('Content-Type', 'application/json');
             return headers;
@@ -49,19 +49,18 @@ export const authApi = createApi({
             }
         }),        loadUser: builder.query({
             query: () => ({
-                url:"profile",
-                method:"GET"
+                url: "profile",
+                method: "GET",
+                credentials: 'include'
             }),
             async onQueryStarted(_, {queryFulfilled, dispatch}) {
                 try {
                     const result = await queryFulfilled;
-                    dispatch(userLoggedIn({user:result.data.user}));
+                    dispatch(userLoggedIn({user: result.data.user}));
                 } catch (error) {
-                    // Only log errors that are not 401 (unauthorized)
                     if (error.error?.status !== 401) {
-                        console.log('Error loading user:', error);
+                        console.error('Error loading user:', error);
                     }
-                    // Ensure user is logged out on any error
                     dispatch(userLoggedOut());
                 }
             }
