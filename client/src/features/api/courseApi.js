@@ -1,13 +1,16 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-const COURSE_API = "https://learnify-4otn.onrender.com/api/v1/course";
+import { API_ENDPOINTS } from "@/config/api";
 
 export const courseApi = createApi({
   reducerPath: "courseApi",
   tagTypes: ["Refetch_Creator_Course", "Refetch_Lecture"],
   baseQuery: fetchBaseQuery({
-    baseUrl: COURSE_API,
+    baseUrl: API_ENDPOINTS.COURSE,
     credentials: "include",
+    prepareHeaders: (headers) => {
+      headers.set('Content-Type', 'application/json');
+      return headers;
+    }
   }),
   endpoints: (builder) => ({
     createCourse: builder.mutation({

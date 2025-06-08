@@ -1,13 +1,16 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import { userLoggedIn, userLoggedOut } from "../authSlice";
-
-const USER_API = "https://learnify-4otn.onrender.com/api/v1/user/"
+import { API_ENDPOINTS } from "@/config/api";
 
 export const authApi = createApi({
     reducerPath:"authApi",
     baseQuery:fetchBaseQuery({
-        baseUrl:USER_API,
-        credentials:'include' 
+        baseUrl: API_ENDPOINTS.USER,
+        credentials:'include',
+        prepareHeaders: (headers) => {
+            headers.set('Content-Type', 'application/json');
+            return headers;
+        }
     }),
     endpoints: (builder) => ({
         registerUser: builder.mutation({
